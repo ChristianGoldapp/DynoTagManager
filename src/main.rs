@@ -4,10 +4,13 @@ use std::io::BufReader;
 use std::error::Error;
 use reqwest::{Client, header::{HeaderValue, HeaderMap, COOKIE}, Response};
 use serde_json::Value;
+use serde::export::fmt::Debug;
+use std::fmt::{Formatter, Display};
+use std::fmt;
 
 fn main() -> Result<(), Box<Error>> {
     let config = load_config()?;
-    println!("{:?}", config.list_tags());
+    println!("{:#?}", config.list_tags()?);
     Ok(())
 }
 
@@ -17,10 +20,16 @@ struct DynoInstance {
     server: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 struct Tag {
     tag: String,
     content: String,
+}
+
+impl Debug for Tag {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Name   : {}\nContent: {}", self.tag, self.content)
+    }
 }
 
 impl DynoInstance {
@@ -38,7 +47,7 @@ impl DynoInstance {
         let url = format!("https://dyno.gg/api/modules/{}/tags/list", self.server);
         let headers = get_headers(&self)?;
         let http = Client::builder().default_headers(headers).build()?;
-        println!("Response: {:?}", response);
+        let mut response = http.get(url.as_str()).send()?;
         let json: Value = response.json()?;
         let tag_json: &Value = &json["tags"];
         let vec : Vec<Tag> = match &tag_json {
