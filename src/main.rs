@@ -35,10 +35,10 @@ impl DynoInstance {
     }
 
     fn list_tags(&self) -> Result<Vec<Tag>, Box<Error>> {
-        let url = format!("https://dyno.gg/api/server/{}/tags/list", self.server);
+        let url = format!("https://dyno.gg/api/modules/{}/tags/list", self.server);
         let headers = get_headers(&self)?;
         let http = Client::builder().default_headers(headers).build()?;
-        let mut response = http.get(url.as_str()).send()?;
+        println!("Response: {:?}", response);
         let json: Value = response.json()?;
         let tag_json: &Value = &json["tags"];
         let vec : Vec<Tag> = match &tag_json {
